@@ -9,7 +9,7 @@ struct Node
     Node *leftChild , *rightChild , *parent;
     double value;
     bool isOperator;
-    string iam; // operator
+    string iam; // who i am 
     Node()
     {
         leftChild = NULL;
@@ -154,7 +154,6 @@ bool update , notok ;
 
 double value_check( string now , double val1 , double val2)
 {
-    //printf("here\n");
     if( now[0] == '*' ) return val1 * val2 ;
     else if( now[0] == '/' ) return val1 / val2 ;
     else if( now[0] == '+' ) return val1 + val2 ;
