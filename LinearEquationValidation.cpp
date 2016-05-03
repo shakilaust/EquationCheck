@@ -19,7 +19,7 @@ struct Node
     }
 
 };
-Node *root1 , *root2 , *root3 , *root4 ;
+Node *root1 , *root2 , *root3 , *root4 , *MainRoot ;
 
 bool Operator( char c )
 {
@@ -252,6 +252,12 @@ float toFloat ( string s )
     return r;
 }
 
+string toString(double number){
+stringstream ss;
+ss << number;
+return ss.str();
+}
+
 LINE WhatIsTheValueOfLine( string exp )
 {
     VAR x ;
@@ -304,7 +310,36 @@ float valueOfx( LINE A , LINE B )
 
 }
 
+string ChangeExp( string exp , double rpl )
+{
+    string res = "" ;
+    int sz = exp.size();
+    for( int i = 0 ; i < sz ; i++ )
+    {
+        if( exp[i] == 'x' ) // always small letter x 
+            res += toString(rpl);
+    }
 
+    return res;
+}
+
+string now[3] , ExpressionOne , ExpressionTwo ; 
+
+void SplitStrings( string Expression )
+{
+    int sz = Expression.size();
+    now[0] = "" , now[1] = "";
+    int idx = 0 ;
+    for( int i = 0 ; i < sz ; i++ )
+    {
+        if( Expression[i] == '=' ) idx++;
+        else now[idx] += Expression[i];
+    }
+    
+    // Postfix order for Left SubTree and RightSubtree 
+    ExpressionOne = ExpressionToPostfixExpression( now[0] );
+    ExpressionTwo = ExpressionToPostfixExpression( now[1] );
+}
 int main()
 {
     int n ;
@@ -314,41 +349,35 @@ int main()
     while( n-- ) {
     printf("Enter the Question ");
     getline( cin , Expression );
-    int sz = Expression.size();
-    printf(" Conver to Postfix : " );
-    string now[2] ;
-    now[0] = "" , now[1] = "";
-    int idx = 0 ;
-    for( int i = 0 ; i < sz ; i++ )
-    {
-        if( Expression[i] == '=' ) idx++;
-        else now[idx] += Expression[i];
-    }
+    SplitStrings( Expression );
 
-    string ExpressionOne = ExpressionToPostfixExpression( now[0] );
-    string ExpressionTwo = ExpressionToPostfixExpression( now[1] );
     double result = valueOfx(WhatIsTheValueOfLine(ExpressionOne ), WhatIsTheValueOfLine(ExpressionTwo) );
+
+
 
     printf(" Ohh !!! Yoo :: result is :: %f\n" , result);
 
+    MainRoot = new Node();
+   
+    root1 = ConvertIntoTree( ChangeExp(ExpressionOne , result ) );
+    root3 = ConvertIntoTree( ChangeExp(ExpressionTwo, result ) );
     printf(" Now solve it :\n");
-    /*bool successful = 1 , complete = 0;
+
+
+    bool successful = 1 , complete = 0;
     int same = 0 ;
-    string prv = exp ;
+    string prv = Expression ;
     int successfulline = 0;
     while( successful && !complete  )
     {
         getline( cin , Expression );
-        update = 0 , notok = 0 ;
-        exp = ExpressionToPostfixExpression(Expression);
-        root2 = ConvertIntoTree( exp );
-        TreeCheck( root1 , root2 );
-        if( notok || ( root1->value != root2->value ) )
-        {
-            successful = 0 ;
-            break ;
-        }
-        if( prv == exp ) same++;
+        SplitStrings( Expression ); 
+
+        root1 = ConvertIntoTree( ChangeExp(ExpressionOne , result ) );
+        root3 = ConvertIntoTree( ChangeExp(ExpressionTwo, result ) ); 
+
+        
+        if( prv == Expression ) same++;
         else
         {
            same = 0 ;
@@ -363,12 +392,19 @@ int main()
             successful = 0 ;
             break;
         }
-        if( root2->leftChild == NULL && root2->rightChild == NULL )
+        if( root2->leftChild == NULL && root2->rightChild == NULL &&  root4->leftChild == NULL && root4->rightChild == NULL )
         {
-            complete = 1 ;
+            if( root2->value == root4->value && root4->value == result )
+            {
+                complete = 1 ;
+
+            }
+            else successful = 0 ;
         }
+
         root1 = root2 ;
-        prv = exp ;
+        root3 = root4 ;
+        prv = Expression ;
     }
 
     if( successful ) {
@@ -377,7 +413,7 @@ int main()
     }
     else printf("Ohh no, you just did something wrong\n");
 
-    */
+    
 
 
     }
