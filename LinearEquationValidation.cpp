@@ -199,17 +199,99 @@ void treeTraverse( Node *now )
     cout << now->iam << " (" << now->value << " )" << endl ;
     if( now->leftChild != NULL )
     {
-        cout << "   ( leftchild )   " << endl ;
+        cout << "   ( leftChild )   " << endl ;
         treeTraverse( now->leftChild );
     }
     if( now->rightChild != NULL )
     {
-        cout << "  ( rightchild)   " << endl ;
+        cout << "  ( rightChild)   " << endl ;
         treeTraverse( now->rightChild );
     }
 }
 
+int isItSideChange( Node *now , string iam , double value )
+{
+
+        if( now->iam == iam )
+        {
+             if( now->leftChild != NULL && now->leftChild->value == value ) return 1 ;
+             if( now->rightChild != NULL && now->rightChild->value == value ) return 1;
+        }
+        if( now->leftChild != NULL && isItSideChange( now->leftChild , iam , value ) == 1 ) return 1 ;
+        if( now->rightChild != NULL && isItSideChange( now->rightChild , iam , value ) == 1 ) return 1 ;
+        return 0 ;
+
+}
+
+int isSideChangeOk( Node *one , Node *two )
+{
+
+
+    if( one->leftChild == NULL && one->rightChild == NULL && two->leftChild == NULL && two->rightChild == NULL) return 1 ;
+    if( one->leftChild != NULL && one->rightChild != NULL && two->leftChild != NULL && two->rightChild != NULL )
+    {
+        int a = isSideChangeOk( one->leftChild , two->leftChild );
+        int b = isSideChangeOk( one->rightChild , two->rightChild );
+        printf("here a , b :: %d %d\n",a,b);
+        return min( a , b );
+    }
+    // Left child included
+    if( one->leftChild == NULL && two->leftChild != NULL )
+    {
+        printf("Left CHild \n" );
+        cout << two->iam << "   and value " << two->leftChild->value << endl ;
+        if( two->iam == "+" ) // minus silo
+        return isItSideChange( root1 , "-" , two->leftChild->value );
+        else if( two->iam == "-" ) // plus silo
+        return isItSideChange( root1 , "+" , two->leftChild->value );
+        else if( two->iam == "*" ) // divide silo
+        return isItSideChange( root1 , "/" , two->leftChild->value );
+        else if( two->iam == "/" ) // plus silo
+        return isItSideChange( root1 , "*" , two->leftChild->value );
+    }
+    // Right Child included
+     if( one->rightChild == NULL && two->rightChild != NULL )
+    {
+        printf("Right CHILD\n");
+        if( two->iam == "+" ) // minus silo
+        return isItSideChange( root1 , "-" , two->rightChild->value );
+        else if( two->iam  == "-" ) // plus silo
+        return isItSideChange( root1 , "+" , two->rightChild->value );
+        else if( two->iam  == "*" ) // divide silo
+        return isItSideChange( root1 , "/" , two->rightChild->value);
+        else if( two->iam  == "/" ) // plus silo
+        return isItSideChange( root1 , "*" , two->rightChild->value );
+    }
+    // leftChild reduce
+     if( one->leftChild != NULL && two->leftChild == NULL )
+    {
+        if( one->iam == "+" ) // minus hoiche
+        return isItSideChange( root2 , "-" , one->leftChild->value );
+        else if( one->iam == "-" ) // plus hoiche
+        return isItSideChange( root2 , "+" , one->leftChild->value );
+        else if( one->iam == "*" ) // divide hoiche
+        return isItSideChange( root2 , "/" , one->leftChild->value );
+        else if( one->iam == "/" ) // plus hoiche
+        return isItSideChange( root2 , "*" , one->leftChild->value );
+    }
+    // rChildight reduce
+     if( one->rightChild != NULL && two->rightChild == NULL )
+    {
+        if( one->iam == "+" ) // minus hoiche
+        return isItSideChange( root2 , "-" , one->rightChild->value );
+        else if( one->iam == "-" ) // plus hoiche
+        return isItSideChange( root2 , "+" , one->rightChild->value );
+        else if( one->iam == "*" ) // divide hoiche
+        return isItSideChange( root2 , "/" , one->rightChild->value );
+        else if( one->iam == "/" ) // plus hoiche
+        return isItSideChange( root2 , "*" , one->rightChild->value );
+    }
+
+}
+
+
 bool update , notok ;
+
 
 double value_check( string now , double val1 , double val2)
 {
@@ -316,14 +398,15 @@ string ChangeExp( string exp , double rpl )
     int sz = exp.size();
     for( int i = 0 ; i < sz ; i++ )
     {
-        if( exp[i] == 'x' ) // always small letter x 
+        if( exp[i] == 'x' ) // always small letter x
             res += toString(rpl);
+        else res += exp[i];
     }
 
     return res;
 }
 
-string now[3] , ExpressionOne , ExpressionTwo ; 
+string now[3] , ExpressionOne , ExpressionTwo ;
 
 void SplitStrings( string Expression )
 {
@@ -335,11 +418,25 @@ void SplitStrings( string Expression )
         if( Expression[i] == '=' ) idx++;
         else now[idx] += Expression[i];
     }
-    
-    // Postfix order for Left SubTree and RightSubtree 
+
+    // Postfix order for Left SubTree and RightSubtree
     ExpressionOne = ExpressionToPostfixExpression( now[0] );
     ExpressionTwo = ExpressionToPostfixExpression( now[1] );
+
+    cout << " Here exp1 " << ExpressionOne << "    exp2 " << ExpressionTwo << endl ;
 }
+
+
+bool CheaterChecking()
+{
+    notok = 0 ;
+    TreeCheck( root1 , root2 );
+    if( notok ) return false ;
+    TreeCheck( root3 , root4 );
+    if( notok ) return false ;
+    else return true ;
+}
+
 int main()
 {
     int n ;
@@ -358,7 +455,7 @@ int main()
     printf(" Ohh !!! Yoo :: result is :: %f\n" , result);
 
     MainRoot = new Node();
-   
+
     root1 = ConvertIntoTree( ChangeExp(ExpressionOne , result ) );
     root3 = ConvertIntoTree( ChangeExp(ExpressionTwo, result ) );
     printf(" Now solve it :\n");
@@ -371,12 +468,39 @@ int main()
     while( successful && !complete  )
     {
         getline( cin , Expression );
-        SplitStrings( Expression ); 
+        SplitStrings( Expression );
 
-        root1 = ConvertIntoTree( ChangeExp(ExpressionOne , result ) );
-        root3 = ConvertIntoTree( ChangeExp(ExpressionTwo, result ) ); 
+        double nowRes = valueOfx(WhatIsTheValueOfLine(ExpressionOne ), WhatIsTheValueOfLine(ExpressionTwo) );
+        if( nowRes != result )
+        {
+            successful = 0;
+            break;
+        }
 
-        
+
+
+        root2 = ConvertIntoTree( ChangeExp(ExpressionOne , result ) );
+        root4 = ConvertIntoTree( ChangeExp(ExpressionTwo, result ) );
+
+        if( root1->value == root2->value ) // No slide change
+        {
+            successful = CheaterChecking();
+            printf(" cheaterChecking successfull : %d\n" , successful );
+        }
+        else
+        {
+            successful = isSideChangeOk( root3 , root4 );
+
+            printf(" isSideok successfull :: %d\n" , successful );
+        }
+
+        if( successful == 0 )
+        {
+            break ;
+        }
+
+
+
         if( prv == Expression ) same++;
         else
         {
@@ -394,12 +518,15 @@ int main()
         }
         if( root2->leftChild == NULL && root2->rightChild == NULL &&  root4->leftChild == NULL && root4->rightChild == NULL )
         {
+            printf("root2->value :: %f root4->value :: %f \n", root2->value , root4->value );
             if( root2->value == root4->value && root4->value == result )
             {
-                complete = 1 ;
+                if( root2->iam == "x" || root4->iam == "x" ) complete = 1 ;
+                else successful = 0 ;
 
             }
             else successful = 0 ;
+            printf("At end here successfull %d\n", successful );
         }
 
         root1 = root2 ;
@@ -413,7 +540,7 @@ int main()
     }
     else printf("Ohh no, you just did something wrong\n");
 
-    
+
 
 
     }
